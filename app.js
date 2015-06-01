@@ -4,6 +4,10 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert');
+var url = 'mongodb://localhost:27017/socket-db';
+
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -19,6 +23,13 @@ io.on('connection', function(socket) {
     });
 });
 
+MongoClient.connect(url, function(err, db){
+  assert.equal(null, err);
+  console.log("Connected correctly to server");
+  db.close();
+});
+
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -30,6 +41,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(function(req, res, next){
+  req.db = MongoClient;
+  next();
+});
 
 app.use('/', routes);
 app.use('/users', users);
