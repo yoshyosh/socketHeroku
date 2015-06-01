@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+  h2 Theatre 14
+  h2 Theatre 15
+  each item in data
+    p
+      a(href='#') #{item.begin + ': ' + '@' + item.location.id + '@ ' + item.title + ' -- ' + item.speakers}
