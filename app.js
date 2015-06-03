@@ -1,4 +1,6 @@
 var express = require('express');
+var WebSocketServer = require('ws').Server
+var http = require('http');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
@@ -7,6 +9,7 @@ var bodyParser = require('body-parser');
 var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var url = 'mongodb://localhost:27017/socket-db';
+var port = process.env.PORT || 5000
 
 
 var routes = require('./routes/index');
@@ -14,14 +17,27 @@ var users = require('./routes/users');
 var presentations = require('./routes/presentations');
 
 var app = express();
-var server = app.listen(3000);
-var io = require('socket.io').listen(server);
+var server = http.createServer(app);
+server.listen(port);
 
-io.on('connection', function(socket) {
-    console.log('A new user connected!');
-    socket.on('live update', function(msg){
-      io.emit('live update', msg);
+var wss = new WebSocketServer({server: server});
+console.log("websocket server created");
+
+var clients = [];
+
+wss.on('connection', function(ws){
+  console.log('A new user connected!');
+  clients.push(ws)
+  ws.onmessage = function(event){
+    clients.forEach(function(client){
+      client.send(event.data);
     });
+  }
+
+  ws.on('close', function(){
+    console.log("websocket connection closed");
+    //remove ws connection from array;
+  });
 });
 
 MongoClient.connect(url, function(err, db){
