@@ -35,8 +35,12 @@ wss.on('connection', function(ws){
   }
 
   ws.on('close', function(){
+    //remove client that closed
+    var index = clients.indexOf(ws);
+    if (index > -1){
+      clients.splice(index, 1);
+    }
     console.log("websocket connection closed");
-    //remove ws connection from array;
   });
 });
 
